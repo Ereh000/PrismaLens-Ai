@@ -1,0 +1,7 @@
+{
+  "name": "PrismaLens AI",
+  "description": "Transform your photos with AI magic. From Studio Ghibli styles to cinematic Batman edits and professional enhancements.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
