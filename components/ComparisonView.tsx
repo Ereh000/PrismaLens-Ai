@@ -24,7 +24,7 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ original, processed, is
 
   if (!processed && !isProcessing) {
     return (
-      <div className="relative w-full aspect-[4/3] md:aspect-video rounded-xl overflow-hidden shadow-2xl bg-black">
+      <div className="relative w-full aspect-[4/3] md:aspect-video rounded-xl overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900">
         <img src={original} alt="Original" className="w-full h-full object-contain" />
       </div>
     );
@@ -32,7 +32,7 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ original, processed, is
 
   return (
     <div 
-      className="relative w-full aspect-[4/3] md:aspect-video rounded-xl overflow-hidden shadow-2xl bg-black select-none cursor-ew-resize group touch-none"
+      className="relative w-full aspect-[4/3] md:aspect-video rounded-xl overflow-hidden shadow-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 select-none cursor-ew-resize group touch-none"
       onMouseMove={handleMouseMove}
       onTouchMove={handleTouchMove}
     >
@@ -45,16 +45,14 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ original, processed, is
 
       {isProcessing && (
          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-            <div className="flex flex-col items-center">
-                <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="text-indigo-400 font-semibold animate-pulse">Generating magic...</p>
+            <div className="flex flex-col items-center p-4 rounded-lg bg-zinc-900/80 backdrop-blur-sm text-zinc-50">
+                <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                <p className="text-sm font-medium animate-pulse">Generating...</p>
             </div>
          </div>
       )}
 
       {/* Layer 2: Original Image (Foreground/Overlay) */}
-      {/* We use clip-path to crop the image from the right side based on slider position. */}
-      {/* This ensures the image aspect ratio remains consistent and doesn't distort. */}
       {processed && !isProcessing && (
         <>
           <img 
@@ -68,17 +66,16 @@ const ComparisonView: React.FC<ComparisonViewProps> = ({ original, processed, is
 
           {/* Slider Handle */}
           <div 
-            className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize z-20 shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+            className="absolute top-0 bottom-0 w-0.5 bg-white cursor-ew-resize z-20 shadow-[0_0_10px_rgba(0,0,0,0.5)]"
             style={{ left: `${sliderPosition}%` }}
           >
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-900 font-bold text-xs">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-zinc-900 font-bold text-xs ring-2 ring-zinc-900/10">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rotate-180 absolute"><path d="m9 18 6-6-6-6"/></svg>
             </div>
           </div>
           
-          <div className="absolute top-4 left-4 bg-black/50 text-white px-2 py-1 rounded text-xs backdrop-blur-sm pointer-events-none z-30">Original</div>
-          <div className="absolute top-4 right-4 bg-indigo-600/50 text-white px-2 py-1 rounded text-xs backdrop-blur-sm pointer-events-none z-30">Edited</div>
+          <div className="absolute top-4 left-4 bg-black/60 text-white px-3 py-1.5 rounded-md text-xs font-medium backdrop-blur-md pointer-events-none z-30">Original</div>
+          <div className="absolute top-4 right-4 bg-indigo-600/90 text-white px-3 py-1.5 rounded-md text-xs font-medium backdrop-blur-md pointer-events-none z-30">Edited</div>
         </>
       )}
     </div>

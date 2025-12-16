@@ -12,6 +12,7 @@ import {
   SparklesIcon, 
   WandIcon, 
   SunIcon, 
+  MoonIcon,
   GhostIcon, 
   ZapIcon,
   DownloadIcon,
@@ -22,9 +23,9 @@ const PRESETS: PresetConfig[] = [
   {
     id: EditMode.GHIBLI,
     label: 'Ghibli Style',
-    description: 'Turn into anime art',
+    description: 'Anime art transformation',
     icon: 'sparkles',
-    color: 'from-green-400 to-emerald-600',
+    color: 'text-emerald-500',
     prompt: 'Transform this image into a high-quality Studio Ghibli style anime scene. Maintain the composition and key subjects but render them with the signature vibrant colors, fluffy clouds, and hand-drawn aesthetic of Ghibli movies.'
   },
   {
@@ -32,7 +33,7 @@ const PRESETS: PresetConfig[] = [
     label: 'Enhance',
     description: 'Boost clarity & detail',
     icon: 'sun',
-    color: 'from-blue-400 to-indigo-600',
+    color: 'text-blue-500',
     prompt: 'Significantly enhance the quality of this image. Increase resolution, sharpness, and clarity. Remove noise and artifacts. Make it look like a professional high-definition photograph.'
   },
   {
@@ -40,7 +41,7 @@ const PRESETS: PresetConfig[] = [
     label: 'Refine Face',
     description: 'Smooth & beautify',
     icon: 'wand',
-    color: 'from-pink-400 to-rose-600',
+    color: 'text-pink-500',
     prompt: 'Retouch the facial features in this image. Smooth the skin naturally while preserving texture and details. Enhance lighting on the face for a professional portrait look.'
   },
   {
@@ -48,7 +49,7 @@ const PRESETS: PresetConfig[] = [
     label: 'Gotham City',
     description: 'Dark cinematic look',
     icon: 'ghost',
-    color: 'from-slate-700 to-black',
+    color: 'text-zinc-500',
     prompt: 'Apply a dark, gritty, cinematic Batman-style aesthetic to this image. High contrast, shadows, rain effects if appropriate, cool color temperature, and a dramatic, brooding atmosphere.'
   },
   {
@@ -56,12 +57,13 @@ const PRESETS: PresetConfig[] = [
     label: 'Wizard World',
     description: 'Magical effects',
     icon: 'zap',
-    color: 'from-amber-400 to-orange-600',
+    color: 'text-amber-500',
     prompt: 'Transform this image with a Harry Potter wizarding world aesthetic. Add magical glows, floating particles, vintage coloring, and a mysterious, enchanted atmosphere.'
   },
 ];
 
 const App: React.FC = () => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [imageState, setImageState] = useState<ImageState>({
     original: null,
     processed: null,
@@ -72,6 +74,30 @@ const App: React.FC = () => {
   const [activeMode, setActiveMode] = useState<EditMode | null>(null);
   const [customPrompt, setCustomPrompt] = useState('');
   const resultRef = useRef<HTMLDivElement>(null);
+
+  // Initialize theme from local storage or system preference
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setTheme('dark');
+    } else {
+      setTheme('light');
+    }
+  }, []);
+
+  // Update HTML class when theme changes
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
 
   const handleImageUpload = (base64: string) => {
     setImageState({
@@ -137,7 +163,7 @@ const App: React.FC = () => {
     if (imageState.processed) {
       const link = document.createElement('a');
       link.href = imageState.processed;
-      link.download = `lumina-edit-${Date.now()}.png`;
+      link.download = `prismalens-edit-${Date.now()}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -156,49 +182,62 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 selection:bg-indigo-500 selection:text-white pb-20">
+    <div className="min-h-screen flex flex-col font-sans transition-colors duration-300">
+      
       {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-50 w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-tr from-indigo-500 to-purple-500 p-2 rounded-lg">
+            <div className="bg-indigo-600 p-1.5 rounded-lg text-white">
               <MagicIcon />
             </div>
-            <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
-              PrismaLens AI
+            <h1 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              PrismaLens<span className="text-indigo-600 dark:text-indigo-400">AI</span>
             </h1>
           </div>
-          {imageState.original && (
-            <button 
-              onClick={handleReset}
-              className="text-sm text-slate-400 hover:text-white flex items-center gap-1 transition-colors"
+          
+          <div className="flex items-center gap-2">
+            {imageState.original && (
+              <button 
+                onClick={handleReset}
+                className="hidden sm:flex text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50 items-center gap-1.5 transition-colors px-3 py-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              >
+                <RefreshIcon />
+                New Image
+              </button>
+            )}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              aria-label="Toggle theme"
             >
-              <RefreshIcon />
-              <span className="hidden sm:inline">New Image</span>
+              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
             </button>
-          )}
+          </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-8 md:py-12">
         
         {/* Intro / Upload Section */}
         {!imageState.original ? (
-          <div className="max-w-2xl mx-auto text-center space-y-8 mt-12">
+          <div className="max-w-2xl mx-auto text-center space-y-10 mt-8 md:mt-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="space-y-4">
-              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">
-                Reimagine your photos with <span className="text-indigo-400">AI Magic</span>
+              <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 lg:text-6xl">
+                Refine reality with <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">AI Magic</span>
               </h2>
-              <p className="text-slate-400 text-lg">
-                Upload a photo to start. Enhance quality, apply cinematic styles, or transform into anime art instantly.
+              <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-lg mx-auto leading-relaxed">
+                Upload a photo to instantly enhance quality, apply cinematic color grades, or transform into unique art styles.
               </p>
             </div>
-            <ImageUploader onImageUpload={handleImageUpload} />
             
-            {/* Feature Pills */}
-            <div className="flex flex-wrap justify-center gap-3 pt-8">
-              {['Studio Ghibli Art', '4K Upscaling', 'Face Refining', 'Cinematic Edits'].map(tag => (
-                <span key={tag} className="px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-sm border border-slate-700">
+            <div className="w-full">
+               <ImageUploader onImageUpload={handleImageUpload} />
+            </div>
+            
+            <div className="flex flex-wrap justify-center gap-2 pt-4">
+              {['Studio Ghibli', '4K Upscale', 'Face Refining', 'Cyberpunk', 'Cinematic'].map(tag => (
+                <span key={tag} className="px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 text-xs font-medium border border-zinc-200 dark:border-zinc-800">
                   {tag}
                 </span>
               ))}
@@ -206,11 +245,11 @@ const App: React.FC = () => {
           </div>
         ) : (
           /* Editor Section */
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-in fade-in zoom-in-95 duration-500">
             
             {/* Left Column: Image Display */}
-            <div className="lg:col-span-2 space-y-4" ref={resultRef}>
-              <div className="bg-slate-800/50 rounded-2xl p-2 border border-slate-700">
+            <div className="lg:col-span-8 space-y-4 sticky top-24" ref={resultRef}>
+              <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 p-1 shadow-sm">
                 <ComparisonView 
                   original={imageState.original} 
                   processed={imageState.processed} 
@@ -219,53 +258,61 @@ const App: React.FC = () => {
               </div>
               
               {/* Action Bar */}
-              <div className="flex justify-between items-center bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-                <div className="text-sm text-slate-400">
-                   {imageState.processed ? 'Drag slider to compare' : 'Select a style to begin'}
+              <div className="flex justify-between items-center bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                <div className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                   {imageState.processed ? 'Drag slider to compare results' : 'Select a style from the right to begin'}
                 </div>
-                {imageState.processed && (
-                  <button 
-                    onClick={handleDownload}
-                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium transition-all active:scale-95"
-                  >
-                    <DownloadIcon />
-                    Download
-                  </button>
-                )}
+                <div className="flex gap-2">
+                   {/* Mobile reset button */}
+                   <button 
+                      onClick={handleReset}
+                      className="sm:hidden flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md text-zinc-700 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                    >
+                      <RefreshIcon />
+                    </button>
+                    {imageState.processed && (
+                      <button 
+                        onClick={handleDownload}
+                        className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white px-4 py-2 rounded-md font-medium text-sm transition-all shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-zinc-950"
+                      >
+                        <DownloadIcon />
+                        Download
+                      </button>
+                    )}
+                </div>
               </div>
 
               {imageState.error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/50 text-red-400 rounded-xl text-sm">
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium">
                   <strong>Error:</strong> {imageState.error}
                 </div>
               )}
             </div>
 
             {/* Right Column: Controls */}
-            <div className="space-y-6">
+            <div className="lg:col-span-4 space-y-8">
               <div>
-                <h3 className="text-lg font-semibold mb-4 text-slate-200">Creative Styles</h3>
+                <h3 className="text-sm font-semibold mb-4 text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Presets</h3>
                 <div className="grid grid-cols-1 gap-3">
                   {PRESETS.map(preset => (
                     <button
                       key={preset.id}
                       onClick={() => handleProcess(preset.id)}
                       disabled={imageState.isProcessing}
-                      className={`group relative overflow-hidden rounded-xl p-4 text-left border transition-all duration-300
+                      className={`group relative overflow-hidden rounded-lg p-3 text-left border transition-all duration-200 hover:shadow-md
                         ${activeMode === preset.id 
-                          ? 'border-indigo-500 bg-slate-800 ring-1 ring-indigo-500/50' 
-                          : 'border-slate-700 bg-slate-800/50 hover:bg-slate-800 hover:border-slate-600'
+                          ? 'border-indigo-600 dark:border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30 ring-1 ring-indigo-600/20' 
+                          : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700'
                         }
                       `}
                     >
-                      <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-r ${preset.color} transition-opacity`} />
-                      <div className="flex items-center gap-4 relative z-10">
-                        <div className={`p-3 rounded-lg bg-slate-900 text-slate-200 group-hover:scale-110 transition-transform`}>
+                      <div className="flex items-start gap-3">
+                        <div className={`mt-1 p-2 rounded-md bg-zinc-100 dark:bg-zinc-800 ${preset.color} transition-colors group-hover:bg-white dark:group-hover:bg-zinc-700`}>
                           {renderIcon(preset.icon)}
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-200">{preset.label}</div>
-                          <div className="text-xs text-slate-400">{preset.description}</div>
+                          <div className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">{preset.label}</div>
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">{preset.description}</div>
                         </div>
                       </div>
                     </button>
@@ -275,20 +322,20 @@ const App: React.FC = () => {
 
               {/* Custom Prompt */}
               <div>
-                <h3 className="text-lg font-semibold mb-4 text-slate-200">Custom Edit</h3>
-                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700 space-y-3">
+                <h3 className="text-sm font-semibold mb-4 text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">Custom</h3>
+                <div className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-3">
                   <div className="relative">
                     <textarea
                       value={customPrompt}
                       onChange={(e) => setCustomPrompt(e.target.value)}
-                      placeholder="E.g., 'Make it look like a cyberpunk city', 'Remove the background'"
-                      className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none h-24"
+                      placeholder="Describe your edit..."
+                      className="w-full bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-md p-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none h-24 transition-all"
                     />
                   </div>
                   <button
                     onClick={() => handleProcess(EditMode.CUSTOM)}
                     disabled={!customPrompt.trim() || imageState.isProcessing}
-                    className="w-full bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-zinc-900 dark:bg-zinc-50 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed py-2.5 rounded-md font-medium text-sm transition-colors flex items-center justify-center gap-2 shadow-sm"
                   >
                     <MagicIcon />
                     Generate Custom
